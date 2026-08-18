@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CARRIER — Sessions keyed to your design</title>
+<meta name="description" content="A binaural session engine keyed to your design. Chart computed on your device. Founding access: $39 lifetime.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B0E0C; --panel:#111511; --paper:#E7E2D2; --dim:#9A937E;
+    --amber:#F0B441; --amber-dim:#7A6530; --red:#C2503C; --rule:#262B24;
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:"IBM Plex Sans",-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{background:var(--ink);color:var(--paper);font-family:var(--sans);font-weight:300;line-height:1.65;font-size:17px}
+  .wrap{max-width:680px;margin:0 auto;padding:0 22px}
+  a{color:var(--amber)}
+  ::selection{background:var(--amber);color:var(--ink)}
+
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.18em;color:var(--amber);text-transform:uppercase}
+  .rule{border:0;border-top:1px solid var(--rule);margin:0}
+  section{padding:56px 0}
+  h1{font-family:var(--mono);font-weight:600;font-size:clamp(30px,6vw,44px);line-height:1.15;letter-spacing:-.01em;margin:18px 0 14px}
+  h2{font-family:var(--mono);font-weight:600;font-size:21px;margin:14px 0 18px}
+  p{margin:0 0 16px;color:var(--paper)}
+  p.dim{color:var(--dim)}
+  .mono{font-family:var(--mono)}
+
+  /* setup banner (visible only while TODOs remain) */
+  #setup{display:none;background:#1A130A;border-bottom:1px solid var(--amber-dim);padding:10px 22px;font-family:var(--mono);font-size:12.5px;color:var(--amber)}
+  #setup b{color:var(--paper)}
+
+  /* hero */
+  .hero{padding:64px 0 48px;display:flex;gap:36px;align-items:center;flex-wrap:wrap}
+  .hero-copy{flex:1 1 320px;min-width:280px}
+  .hero-sub{color:var(--dim);font-size:18px;margin-top:6px}
+  .hero-phone{flex:0 0 auto;margin:0 auto}
+  #heroCanvas{width:270px;height:auto;display:block;border-radius:34px;box-shadow:0 0 0 1px var(--rule),0 24px 60px rgba(0,0,0,.55)}
+  .phone-cap{font-family:var(--mono);font-size:11.5px;color:var(--dim);text-align:center;margin-top:10px;letter-spacing:.08em}
+
+  .btn{display:inline-block;font-family:var(--mono);font-weight:600;font-size:15px;letter-spacing:.06em;
+       padding:14px 26px;margin-top:22px;color:var(--ink);background:var(--amber);border:1px solid var(--amber);
+       text-decoration:none;cursor:pointer}
+  .btn:hover{background:var(--paper);border-color:var(--paper)}
+  .btn.pending{background:transparent;color:var(--amber-dim);border:1px dashed var(--amber-dim);cursor:default}
+  .btn.ghost{background:transparent;color:var(--amber)}
+  .btn.ghost:hover{background:var(--amber);color:var(--ink)}
+
+  /* surfaces grid */
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px}
+  @media(max-width:560px){.cards{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--rule);padding:18px 18px 14px;position:relative}
+  .card::before,.card::after{content:"";position:absolute;width:10px;height:10px;border-color:var(--amber-dim);border-style:solid}
+  .card::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
+  .card::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+  .card h3{font-family:var(--mono);font-size:14px;letter-spacing:.1em;color:var(--amber);margin-bottom:8px;text-transform:uppercase}
+  .card p{font-size:15px;color:var(--dim);margin:0}
+  .card.wide{grid-column:1 / -1}
+
+  /* audio */
+  .audio-box{background:var(--panel);border:1px solid var(--rule);padding:22px}
+  .audio-box p{font-size:15px}
+  #demoBtn{margin-top:8px}
+  .hp-note{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:14px;letter-spacing:.06em}
+  #engineClipWrap{margin-bottom:20px}
+  audio{width:100%;margin-top:10px}
+
+  /* founding */
+  .offer{background:var(--panel);border:1px solid var(--amber-dim);padding:30px;position:relative}
+  .offer .stamp{position:absolute;top:-13px;left:22px;background:var(--ink);padding:2px 10px;
+    font-family:var(--mono);font-size:12px;letter-spacing:.2em;color:var(--red);border:1px solid var(--red)}
+  .price{font-family:var(--mono);font-weight:600;font-size:44px;margin:6px 0 2px}
+  .price small{font-size:16px;color:var(--dim);font-weight:400}
+  .offer ul{list-style:none;margin:18px 0 6px}
+  .offer li{padding:9px 0;border-top:1px solid var(--rule);font-size:15.5px}
+  .offer li:first-child{border-top:0}
+  .offer li .k{font-family:var(--mono);color:var(--amber);font-size:12.5px;letter-spacing:.1em;display:block;text-transform:uppercase;margin-bottom:2px}
+  .seats{font-family:var(--mono);font-size:13px;color:var(--red);letter-spacing:.1em;margin-top:14px}
+
+  /* faq */
+  .faq dt{font-family:var(--mono);font-size:14.5px;color:var(--amber);margin:20px 0 6px;letter-spacing:.04em}
+  .faq dd{color:var(--dim);font-size:15.5px}
+
+  footer{padding:44px 0 70px;color:var(--dim);font-size:13px}
+  footer .mono{font-size:12px;letter-spacing:.06em;display:block;margin-top:10px}
+  .focus-visible :focus-visible, a:focus-visible, button:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     SETUP — the only three things this file is waiting on.
+     1) BUY_LINK       your Stripe Payment Link or Gumroad URL
+     2) CLIP_SRC       filename of your 90-sec engine capture (mp3),
+                       placed next to this file. Leave "" to hide slot.
+     3) CONTACT_EMAIL  a support address (can be an alias)
+     Edit the three constants in the CONFIG block at the bottom.
+     The amber banner disappears automatically when all are set.
+============================================================ -->
+<div id="setup"></div>
+
+<div class="wrap">
+
+  <section class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow">CARRIER // FOUNDING FILE</span>
+      <h1>Sessions keyed to your design.</h1>
+      <p class="hero-sub">A binaural session engine. Enter your birth data — your chart is calculated entirely on your device, and the engine generates your session: carrier, pacing, and script keyed to your type, authority, and profile.</p>
+      <a class="btn" href="#founding">CLAIM A FOUNDING SEAT — $39</a>
+    </div>
+    <div class="hero-phone">
+      <canvas id="heroCanvas" width="585" height="1266"></canvas>
+      <div class="phone-cap" id="heroCap">DAILY TRANSIT — LIVE, COMPUTED IN YOUR BROWSER</div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section id="engine">
+    <span class="eyebrow">FILE // ENGINE</span>
+    <h2>Not affirmations off a shelf. An engine.</h2>
+    <p>Most tools in this space are a library: pre-recorded tracks, quote cards, a notification with spiritual aesthetics on top. CARRIER generates. Your chart is the input; the session is the output — the binaural carrier frequency, the pacing of each stage, and the spoken script are keyed to your specific design.</p>
+    <p>Two session shapes. A <b>3-minute daily anchor</b>: one tap, drop in, one keyed line, return. And the <b>33-minute deep protocol</b> — a full staged journey in the console, voiced and eyes-free.</p>
+    <p>Every completed cycle stamps a <b>sigil</b> — a dated artifact of the session, saved as an image. Thirty-three days makes a cycle; the record is yours to keep or post.</p>
+    <p class="dim">The widget above is real. It computes today's solar transit — the gate and line the Sun occupies right now — with no birth data at all. That layer ships first.</p>
+  </section>
+
+  <hr class="rule">
+
+  <section id="signal">
+    <span class="eyebrow">FILE // SIGNAL</span>
+    <h2>Hear it.</h2>
+    <div class="audio-box">
+      <div id="engineClipWrap" style="display:none">
+        <p><b>90 seconds from a live session.</b> Voiced, staged, unedited engine output.</p>
+        <audio id="engineClip" controls preload="none"></audio>
+      </div>
+      <p>Raw keyed carrier — fifteen seconds of today's frequency pair (<span class="mono" id="demoFreq"></span>), generated in your browser right now. Full sessions are voiced and staged; this is just the wave underneath.</p>
+      <button class="btn ghost" id="demoBtn" type="button">PLAY 15-SECOND CARRIER</button>
+      <p class="hp-note">HEADPHONES REQUIRED — THE BEAT EXISTS BETWEEN YOUR EARS, NOT IN THE FILE.</p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section id="surfaces">
+    <span class="eyebrow">FILE // SURFACES</span>
+    <h2>Five surfaces. One engine.</h2>
+    <div class="cards">
+      <div class="card wide"><h3>The Widget</h3><p>Today's gate and line on your lock screen, sigil-stamped. Tap through to a keyed session. Ships with the native app — founders included.</p></div>
+      <div class="card"><h3>The Anchor</h3><p>The 3-minute daily. One tap from widget or reminder. Remembered settings, zero typing.</p></div>
+      <div class="card"><h3>The Protocol</h3><p>The 33-minute deep console. Staged, voiced, eyes-free. Already running — founders get it day one.</p></div>
+      <div class="card"><h3>The Sigils</h3><p>A dated artifact per session; milestone designs for day one, day 33, and rare configurations.</p></div>
+      <div class="card"><h3>The Chart Room</h3><p>Birth data in, chart out — computed on your device. Nothing is transmitted. Ever.</p></div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section id="founding">
+    <span class="eyebrow">FILE // FOUNDING</span>
+    <h2>Twelve seats. They steer the build.</h2>
+    <div class="offer">
+      <span class="stamp">FOUNDING ACCESS</span>
+      <div class="price">$39 <small>one-time · lifetime · all tiers, forever</small></div>
+      <ul>
+        <li><span class="k">Ships by Fri, Sep 4</span>Keyed daily sessions in the browser — anchor mode, transit keying, streaks with forgiveness built in.</li>
+        <li><span class="k">Ships by Fri, Oct 2</span>The full chart engine — birth data in, sessions keyed to type, authority, and profile. On-device.</li>
+        <li><span class="k">Then</span>The native app — lock-screen widget and daily reminder included — at no further cost to founders.</li>
+        <li><span class="k">Your vote</span>Founders vote on what builds first after launch. Twelve people steer the roadmap.</li>
+        <li><span class="k">Guarantee</span>14 days, full refund, no questions. If it's not for you, the seat goes to someone else.</li>
+      </ul>
+      <a class="btn" id="buyBtn" href="#">CLAIM A FOUNDING SEAT — $39</a>
+      <div class="seats" id="seatLine"></div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section id="mechanism">
+    <span class="eyebrow">FILE // MECHANISM</span>
+    <h2>The honest score.</h2>
+    <p>Real mechanisms in play: entrainment-adjacent audio, deep relaxation, rehearsal, and ritual consistency. The chart keys the aesthetics, pacing, and language of your sessions — that is the claim, whole and entire.</p>
+    <p>No outcome promises. Not a medical device, not therapy, not a substitute for either. If a tool in this space tells you otherwise, close the tab.</p>
+    <p class="dim">Your birth data is computed on this device and never transmitted. That isn't a policy — it's the architecture.</p>
+  </section>
+
+  <hr class="rule">
+
+  <section id="questions">
+    <span class="eyebrow">FILE // QUESTIONS</span>
+    <h2>Asked and answered.</h2>
+    <dl class="faq">
+      <dt>Does anything work today?</dt>
+      <dd>Yes. The 33-minute console runs now, in a browser, and founders receive it immediately. The dates above add keying, the anchor, and sigils on top of it.</dd>
+      <dt>What exactly does $39 buy?</dt>
+      <dd>Lifetime access to everything CARRIER ever ships — browser, chart engine, native app, all future tiers — plus a founder's vote on the roadmap. No subscription, ever, for founders.</dd>
+      <dt>What if it slips or isn't for me?</dt>
+      <dd>Fourteen-day full refund, no questions asked, no forms. One email.</dd>
+      <dt>Is this official Human Design or Monroe material?</dt>
+      <dd>No. CARRIER is an independent project — not affiliated with, or endorsed by, Jovian Archive, any Human Design organization, or the Monroe Institute. Sessions are keyed to your design; the system's teachings belong to their teachers.</dd>
+    </dl>
+  </section>
+
+  <hr class="rule">
+
+  <footer>
+    <span class="eyebrow" style="color:var(--dim)">CARRIER // END OF FILE</span>
+    <span class="mono">Use seated or lying down, eyes closed. Never while driving or operating machinery. Not a medical device.</span>
+    <span class="mono" id="contactLine"></span>
+    <span class="mono">&copy; 2026 CARRIER. An independent project.</span>
+  </footer>
+
+</div>
+
+<script>
+/* ================= CONFIG — the three setup slots ================= */
+const BUY_LINK      = "https://buy.stripe.com/4gMaEZfb5fsb2JD8qd6g800";   // <-- 1. Stripe Payment Link / Gumroad URL
+const CLIP_SRC      = "carrier_capture.mp3";       // <-- 2. e.g. "carrier_capture.mp3" (file beside this page). "" hides the slot.
+const CONTACT_EMAIL = "TODO";   // <-- 3. support address
+const SEATS_LEFT    = 12;       // edit by hand after each sale
+/* ================================================================== */
+
+/* ---- Gate library (validated against canon anchors: 0 Aries->25, solstices->15/10, rave new year->41) ---- */
+const GATE_ORDER=[41,19,13,49,30,55,37,63,22,36,25,17,21,51,42,3,27,24,2,23,8,20,16,35,45,12,15,52,39,53,62,56,31,33,7,4,29,59,40,64,47,6,46,18,48,57,32,50,28,44,1,43,14,34,9,5,26,11,10,58,38,54,61,60];
+const GATE_NAMES={1:"SELF-EXPRESSION",2:"DIRECTION",3:"ORDERING",4:"FORMULIZATION",5:"FIXED RHYTHMS",6:"FRICTION",7:"THE ROLE OF THE SELF",8:"CONTRIBUTION",9:"FOCUS",10:"BEHAVIOR OF THE SELF",11:"IDEAS",12:"CAUTION",13:"THE LISTENER",14:"POWER SKILLS",15:"EXTREMES",16:"SKILLS",17:"OPINIONS",18:"CORRECTION",19:"WANTING",20:"THE NOW",21:"THE HUNTER",22:"OPENNESS",23:"ASSIMILATION",24:"RATIONALIZATION",25:"SPIRIT OF THE SELF",26:"THE EGOIST",27:"CARING",28:"THE GAME PLAYER",29:"SAYING YES",30:"FEELINGS",31:"INFLUENCE",32:"CONTINUITY",33:"PRIVACY",34:"POWER",35:"CHANGE",36:"CRISIS",37:"FRIENDSHIP",38:"THE FIGHTER",39:"PROVOCATION",40:"ALONENESS",41:"CONTRACTION",42:"GROWTH",43:"INSIGHT",44:"ALERTNESS",45:"THE GATHERER",46:"DETERMINATION",47:"REALIZATION",48:"DEPTH",49:"PRINCIPLES",50:"VALUES",51:"SHOCK",52:"STILLNESS",53:"BEGINNINGS",54:"AMBITION",55:"SPIRIT",56:"STIMULATION",57:"INTUITION",58:"VITALITY",59:"INTIMACY",60:"ACCEPTANCE",61:"MYSTERY",62:"DETAILS",63:"DOUBT",64:"CONFUSION"};
+const HEX_BITS={1:"111111",2:"000000",3:"100010",4:"010001",5:"111010",6:"010111",7:"010000",8:"000010",9:"111011",10:"110111",11:"111000",12:"000111",13:"101111",14:"111101",15:"001000",16:"000100",17:"100110",18:"011001",19:"110000",20:"000011",21:"100101",22:"101001",23:"000001",24:"100000",25:"100111",26:"111001",27:"100001",28:"011110",29:"010010",30:"101101",31:"001110",32:"011100",33:"001111",34:"111100",35:"000101",36:"101000",37:"101011",38:"110101",39:"001010",40:"010100",41:"110001",42:"100011",43:"111110",44:"011111",45:"000110",46:"011000",47:"010110",48:"011010",49:"101110",50:"011101",51:"100100",52:"001001",53:"001011",54:"110100",55:"101100",56:"001101",57:"011011",58:"110110",59:"010011",60:"110010",61:"110011",62:"001100",63:"101010",64:"010101"};
+
+function sunLongitude(date){ // Astronomical Almanac low-precision; +/-0.01 deg, 1950-2050
+  const jd = date.getTime()/86400000 + 2440587.5, n = jd - 2451545.0;
+  const L = (((280.460 + 0.9856474*n) % 360) + 360) % 360;
+  const g = ((((357.528 + 0.9856003*n) % 360) + 360) % 360) * Math.PI/180;
+  return (((L + 1.915*Math.sin(g) + 0.020*Math.sin(2*g)) % 360) + 360) % 360;
+}
+function gateLine(date){
+  const off = (((sunLongitude(date) - 302.0) % 360) + 360) % 360;
+  const gate = GATE_ORDER[Math.floor(off/5.625)];
+  const line = Math.floor((off % 5.625)/0.9375) + 1;
+  return {gate, line};
+}
+function keying(gate,line){ // v0 deterministic placeholder keying — real chart keying ships Oct 2
+  return {carrier: 60 + ((gate*37) % 81), beat: +(3.5 + 0.5*line).toFixed(1)};
+}
+
+/* ---- Phone / widget renderer (base 585x1266 units, scales with canvas) ---- */
+function drawPhone(cv){
+  const ctx = cv.getContext("2d"), s = cv.width/585, u = v => v*s;
+  const now = new Date(), {gate,line} = gateLine(now), key = keying(gate,line);
+  const MONO = px => `600 ${u(px)}px "IBM Plex Mono",monospace`;
+  const MONO4 = px => `400 ${u(px)}px "IBM Plex Mono",monospace`;
+
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.save();
+  // frame clip
+  const r = u(64); const W = cv.width, H = cv.height;
+  ctx.beginPath(); ctx.moveTo(r,0); ctx.arcTo(W,0,W,H,r); ctx.arcTo(W,H,0,H,r); ctx.arcTo(0,H,0,0,r); ctx.arcTo(0,0,W,0,r); ctx.closePath(); ctx.clip();
+  // wallpaper
+  ctx.fillStyle = "#06080A"; ctx.fillRect(0,0,W,H);
+  const ripple = (cx,cy,n,step,alpha) => { ctx.strokeStyle = `rgba(240,180,65,${alpha})`; ctx.lineWidth = u(1.2);
+    for(let i=1;i<=n;i++){ ctx.beginPath(); ctx.arc(u(cx),u(cy),u(i*step),0,Math.PI*2); ctx.stroke(); } };
+  ripple(150,320,14,42,0.028); ripple(460,980,16,40,0.022);
+  const grad = ctx.createLinearGradient(0,0,0,H); grad.addColorStop(0,"rgba(0,0,0,0)"); grad.addColorStop(1,"rgba(0,0,0,.45)");
+  ctx.fillStyle = grad; ctx.fillRect(0,0,W,H);
+
+  // lock glyph
+  ctx.strokeStyle = "rgba(231,226,210,.8)"; ctx.lineWidth = u(3.4);
+  ctx.beginPath(); ctx.arc(u(292.5),u(84),u(11),Math.PI,0); ctx.stroke();
+  ctx.fillStyle = "rgba(231,226,210,.8)"; ctx.fillRect(u(277),u(84),u(31),u(24));
+
+  // date + clock
+  ctx.textAlign = "center"; ctx.fillStyle = "rgba(231,226,210,.85)"; ctx.font = MONO4(22);
+  const dateStr = now.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"}).toUpperCase();
+  ctx.fillText(dateStr, W/2, u(152));
+  ctx.fillStyle = "rgba(231,226,210,.95)"; ctx.font = `200 ${u(148)}px "IBM Plex Sans",sans-serif`;
+  ctx.fillText("06:33", W/2, u(300));
+
+  // ---- widget card ----
+  const wx=u(45), wy=u(372), ww=u(495), wh=u(232);
+  ctx.fillStyle = "rgba(12,16,12,.94)"; ctx.fillRect(wx,wy,ww,wh);
+  ctx.strokeStyle = "#7A6530"; ctx.lineWidth = u(2); ctx.strokeRect(wx,wy,ww,wh);
+  ctx.strokeStyle = "#F0B441"; ctx.lineWidth = u(2.4);
+  const tick=u(16);
+  [[wx,wy,1,1],[wx+ww,wy,-1,1],[wx,wy+wh,1,-1],[wx+ww,wy+wh,-1,-1]].forEach(([x,y,dx,dy])=>{
+    ctx.beginPath(); ctx.moveTo(x,y+dy*tick); ctx.lineTo(x,y); ctx.lineTo(x+dx*tick,y); ctx.stroke();
+  });
+  // header row
+  ctx.textAlign="left"; ctx.fillStyle="#F0B441"; ctx.font = MONO(14.5);
+  ctx.fillText("CARRIER // DAILY TRANSIT", wx+u(24), wy+u(34));
+  ctx.textAlign="right"; ctx.fillStyle="#9A937E"; ctx.font = MONO4(14.5);
+  const dShort = now.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"2-digit"}).toUpperCase().replace(/ /g," ");
+  ctx.fillText(dShort, wx+ww-u(24), wy+u(34));
+  // hexagram (bottom -> top)
+  const bits = HEX_BITS[gate], hx = wx+u(36), hyTop = wy+u(66), lw = u(78), lh = u(11), gap = u(8.6), seg=(lw-u(12))/2;
+  ctx.fillStyle = "#F0B441";
+  for(let i=0;i<6;i++){
+    const y = hyTop + (5-i)*(lh+gap); // i=0 bottom line
+    if(bits[i]==="1"){ ctx.fillRect(hx,y,lw,lh); }
+    else { ctx.fillRect(hx,y,seg,lh); ctx.fillRect(hx+seg+u(12),y,seg,lh); }
+  }
+  // main readout
+  ctx.textAlign="left"; ctx.fillStyle="#E7E2D2"; ctx.font = MONO(38);
+  ctx.fillText(`SUN \u25B8 GATE ${gate}.${line}`, wx+u(138), wy+u(110));
+  ctx.fillStyle="#F0B441"; ctx.font = MONO(17);
+  ctx.fillText(GATE_NAMES[gate], wx+u(138), wy+u(142));
+  ctx.fillStyle="#9A937E"; ctx.font = MONO4(15);
+  ctx.fillText(`C ${key.carrier} HZ  \u00B7  \u03B8 ${key.beat} HZ`, wx+u(138), wy+u(170));
+  // footer strip
+  ctx.strokeStyle="#262B24"; ctx.lineWidth=u(1.4);
+  ctx.beginPath(); ctx.moveTo(wx,wy+wh-u(42)); ctx.lineTo(wx+ww,wy+wh-u(42)); ctx.stroke();
+  ctx.fillStyle="#E7E2D2"; ctx.font = MONO4(13.5);
+  ctx.fillText("TAP TO KEY \u25B8 3-MIN ANCHOR", wx+u(24), wy+wh-u(15));
+  ctx.textAlign="right"; ctx.fillStyle="#C2503C"; ctx.font = MONO(12.5);
+  ctx.fillText("EYES CLOSED ONLY", wx+ww-u(24), wy+wh-u(15));
+
+  // bottom controls
+  const circle=(cx,cy)=>{ ctx.fillStyle="rgba(17,21,17,.85)"; ctx.beginPath(); ctx.arc(u(cx),u(cy),u(42),0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle="#262B24"; ctx.lineWidth=u(1.5); ctx.stroke(); };
+  circle(105,1148); circle(480,1148);
+  ctx.strokeStyle="rgba(231,226,210,.7)"; ctx.lineWidth=u(3);
+  ctx.strokeRect(u(95),u(1132),u(20),u(22)); ctx.beginPath(); ctx.moveTo(u(98),u(1154)); ctx.lineTo(u(112),u(1154)); ctx.stroke(); // torch
+  ctx.beginPath(); ctx.arc(u(480),u(1148),u(14),0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(u(480),u(1148),u(5),0,Math.PI*2); ctx.stroke(); // lens
+  ctx.fillStyle="rgba(231,226,210,.5)"; ctx.fillRect(W/2-u(100),u(1236),u(200),u(7));
+  ctx.restore();
+}
+
+/* ---- Live audio demo: today's keyed carrier, 15 s ---- */
+let audioCtx=null, demoNodes=null, demoTimer=null;
+function stopDemo(){
+  if(demoNodes){ const {gain,oL,oR} = demoNodes, t = audioCtx.currentTime;
+    gain.gain.cancelScheduledValues(t); gain.gain.setValueAtTime(gain.gain.value,t);
+    gain.gain.linearRampToValueAtTime(0.0001,t+0.6);
+    setTimeout(()=>{ try{oL.stop();oR.stop();}catch(e){} },700); demoNodes=null; }
+  if(demoTimer){ clearTimeout(demoTimer); demoTimer=null; }
+  demoBtn.textContent = "PLAY 15-SECOND CARRIER";
+}
+function startDemo(){
+  const {gate,line} = gateLine(new Date()), key = keying(gate,line);
+  audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+  const t = audioCtx.currentTime;
+  const oL = audioCtx.createOscillator(), oR = audioCtx.createOscillator();
+  const pL = audioCtx.createStereoPanner(), pR = audioCtx.createStereoPanner();
+  const gain = audioCtx.createGain();
+  oL.type = oR.type = "sine";
+  oL.frequency.value = key.carrier; oR.frequency.value = key.carrier + key.beat;
+  pL.pan.value = -1; pR.pan.value = 1;
+  gain.gain.setValueAtTime(0.0001,t);
+  gain.gain.linearRampToValueAtTime(0.09,t+1.5);
+  gain.gain.setValueAtTime(0.09,t+13.2);
+  gain.gain.linearRampToValueAtTime(0.0001,t+15);
+  oL.connect(pL).connect(gain); oR.connect(pR).connect(gain); gain.connect(audioCtx.destination);
+  oL.start(t); oR.start(t); oL.stop(t+15.2); oR.stop(t+15.2);
+  demoNodes = {gain,oL,oR};
+  demoBtn.textContent = "STOP";
+  demoTimer = setTimeout(stopDemo, 15300);
+}
+const demoBtn = document.getElementById("demoBtn");
+demoBtn.addEventListener("click", ()=> demoNodes ? stopDemo() : startDemo());
+
+/* ---- Wire-up ---- */
+(function init(){
+  const {gate,line} = gateLine(new Date()), key = keying(gate,line);
+  document.getElementById("demoFreq").textContent = `${key.carrier} Hz L / ${key.carrier+key.beat} Hz R \u2192 \u03B8 ${key.beat} Hz`;
+  document.getElementById("heroCap").textContent = `GATE ${gate}.${line} \u2014 ${GATE_NAMES[gate]} \u00B7 LIVE, COMPUTED IN YOUR BROWSER`;
+  document.getElementById("seatLine").textContent = `${SEATS_LEFT} OF 12 FOUNDING SEATS REMAIN`;
+
+  const todo = [];
+  const buy = document.getElementById("buyBtn");
+  if(/^https?:\/\//.test(BUY_LINK)){ buy.href = BUY_LINK; }
+  else { buy.classList.add("pending"); buy.removeAttribute("href"); todo.push("<b>BUY_LINK</b> (Stripe/Gumroad URL)"); }
+  if(CLIP_SRC){ const w=document.getElementById("engineClipWrap");
+    document.getElementById("engineClip").src = CLIP_SRC; w.style.display="block"; }
+  else { todo.push("<b>CLIP_SRC</b> (90-sec engine capture)"); }
+  if(CONTACT_EMAIL && CONTACT_EMAIL!=="TODO"){
+    document.getElementById("contactLine").innerHTML = `CONTACT: <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a>`; }
+  else { todo.push("<b>CONTACT_EMAIL</b>"); }
+  if(todo.length){ const s=document.getElementById("setup");
+    s.innerHTML = "SETUP \u2014 " + todo.length + " ITEM(S) BEFORE POSTING: " + todo.join(" \u00B7 ") + " \u2014 edit CONFIG at the bottom of this file. This banner removes itself.";
+    s.style.display="block"; }
+
+  const cv = document.getElementById("heroCanvas");
+  drawPhone(cv);
+  if(document.fonts && document.fonts.ready){ document.fonts.ready.then(()=>drawPhone(cv)); }
+})();
+</script>
+</body>
+</html>
